@@ -12,6 +12,13 @@ mcp = FastMCP("100x curriculum")
 # Step 1. Move get_lecture here from tool_call.py and put @mcp.tool on the line above it.
 
 # Step 2. Write the card into the function itself: a docstring and a type hint.
+@mcp.tool
+def get_lecture(number: Annotated[int, "The lecture number, from 1 to 19. 'Seventh class' or 'session ten' means lecture 7 or 10."]) -> dict:
+    """Gives the date, title, type and tools of one lecture of the 100xEngineers Cohort 8 course. Use it for any question about a lecture, class or session of this course. Do not use it for general questions or for other courses."""
+    for row in csv.reader(io.StringIO(requests.get(SHEET).text)):
+        if row[1].startswith(f"{number}. "):
+            return {"date": row[0], "title": row[1], "type": row[2], "tools": row[3]}
+    return {"error": f"There is no lecture {number}. Lectures run from 1 to 19."}
 
 
 # Any app can now reach it at http://localhost:8000/mcp

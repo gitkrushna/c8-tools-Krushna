@@ -38,18 +38,30 @@ messages = [{"role": "user", "content": question}]
 # Step 2. The card: fill in the two empty strings.
 card = {"type": "function", "function": {
     "name": "get_lecture",
-    "description": "",                                                    # Use it when
+    "description": " Gives the date, title, type and tools of one lecture of the 100xEngineers Cohort 8 course. Use it for any question about a lecture, class or session of this course. Do not use it for general questions or for other courses.",                                                    # Use it when
     "parameters": {"type": "object",
                    "properties": {"number": {"type": "integer",
-                                             "description": ""}},         # It needs
+                                             "description": "The lecture number, from 1 to 19. “Seventh class” or “session ten” means lecture 7 or 10."}},         # It needs
                    "required": ["number"]},
 }}
 
-reply = ask_model(messages)                 # Step 2: send the card too
-print(json.dumps(reply, indent=2, ensure_ascii=False))
+reply = ask_model(messages, [card])                # Step 2: send the card too
+
 
 # Step 3. Run the request the model wrote.
 
+
 # Step 4. Hand the result back to the model and print its answer.
 
+
 # Step 5. Turn steps 3 and 4 into a loop.
+while reply.get("tool_calls"):
+    messages.append(reply)
+    for call in reply["tool_calls"]:
+        args = json.loads(call["function"]["arguments"])
+        print("The model asked for: get_lecture", args)
+        result = get_lecture(**args)
+        messages.append({"role": "tool", "tool_call_id": call["id"], "content": json.dumps(result)})
+    reply = ask_model(messages, [card])
+
+print("\n" + reply["content"])
